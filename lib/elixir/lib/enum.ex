@@ -2773,6 +2773,56 @@ defmodule Enum do
   end
 
   @doc """
+  Returns a list with elements of `enumerable` shuffled, using
+  `seed` and `alg` for randomness (rather than implicit use of state
+  in the process dictionary).
+
+  This function uses Erlang's [`:rand.seed_s/2`](`:rand.seed_s/2`)
+  and [`:rand.uniform_s/1`](`:rand.uniform_s/1`) functions to
+  generate and pass explicit randomness, rather than using the state
+  stored in the process dictionary.
+
+  `seed` supports 3 formats, defined
+  [here](https://www.erlang.org/doc/man/rand.html#type-seed). Each format
+  is some set of integers, each `alg` utilizes them differently.
+  Note that not every `alg` supports every `seed` format.
+
+  `alg` is an atom indicating an algorithm built into Erlang (defined
+  [here](https://www.erlang.org/doc/man/rand.html#type-builtin_alg))
+  or
+  [`:default`](https://www.erlang.org/doc/man/rand.html#default-algorithm),
+  which as of this writing is `:exsss`.
+  You can read descriptions of these algorithms
+  [here](https://www.erlang.org/doc/man/rand.html#algorithms).
+
+  ## Examples
+
+  The example shows a consistent output regardless of the implicit
+  process dictionary state.
+
+      iex> seed = {0, 0, 1}
+      iex> :rand.seed(:default, {1, 2, 3})
+      iex> Enum.shuffle_s(1..4, seed)
+      [4, 2, 3, 1]
+      iex> :rand.seed(:default, {3, 2, 1})
+      iex> Enum.shuffle_s(1..4, seed)
+      [4, 2, 3, 1]
+
+  """
+  @spec shuffle_s(t, [integer] | integer | {integer, integer, integer}, atom) :: list
+  def shuffle_s(enumerable, seed, alg \\ :default) do
+    initial_state = :rand.seed_s(alg, seed)
+
+    {randomized, _state} =
+      reduce(enumerable, {[], initial_state}, fn x, {acc, state} ->
+        {n, n_state} = :rand.uniform_s(state)
+        {[{n, x} | acc], n_state}
+      end)
+
+    shuffle_unwrap(:lists.keysort(1, randomized), [])
+  end
+
+  @doc """
   Returns a subset list of the given `enumerable` by `index_range`.
 
   `index_range` must be a `Range`. Given an `enumerable`, it drops

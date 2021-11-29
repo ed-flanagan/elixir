@@ -992,6 +992,21 @@ defmodule EnumTest do
     assert Enum.shuffle([1, 2, 3, 4, 5]) == [1, 3, 4, 5, 2]
   end
 
+  test "shuffle_s/3" do
+    data = [1, 2, 3, 4, 5]
+    seed = {0, 0, 1}
+
+    # set implicit process dictionary seed to show `shuffle_s/3`
+    # does not utilize
+    :rand.seed(:default, {1374, 347_975, 449_264})
+    assert Enum.shuffle_s(data, seed) == [4, 2, 3, 5, 1]
+    assert Enum.shuffle_s(data, seed, :exro928ss) == [4, 3, 1, 2, 5]
+
+    :rand.seed(:default, {38_472, 98_744, 428})
+    assert Enum.shuffle_s(data, seed) == [4, 2, 3, 5, 1]
+    assert Enum.shuffle_s(data, seed, :exro928ss) == [4, 3, 1, 2, 5]
+  end
+
   test "slice/2" do
     list = [1, 2, 3, 4, 5]
     assert Enum.slice(list, 0..0) == [1]
@@ -2021,6 +2036,18 @@ defmodule EnumTest.Range do
     :rand.seed(:exsss, {1374, 347_975, 449_264})
     assert Enum.shuffle(1..5) == [1, 3, 4, 5, 2]
     assert Enum.shuffle(1..10//2) == [3, 9, 7, 1, 5]
+  end
+
+  test "shuffle_s/3" do
+    seed = {0, 0, 1}
+
+    :rand.seed(:default, {1374, 347_975, 449_264})
+    assert Enum.shuffle_s(1..5, seed) == [4, 2, 3, 5, 1]
+    assert Enum.shuffle_s(1..5, seed, :exro928ss) == [4, 3, 1, 2, 5]
+
+    :rand.seed(:default, {38_472, 98_744, 428})
+    assert Enum.shuffle_s(1..5, seed) == [4, 2, 3, 5, 1]
+    assert Enum.shuffle_s(1..5, seed, :exro928ss) == [4, 3, 1, 2, 5]
   end
 
   test "slice/2" do
